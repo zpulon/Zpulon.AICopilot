@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+
+        <ProjectReference Include="..\Zpulon.AICopilot.Core.AiGateway\Zpulon.AICopilot.Core.AiGateway.csproj"/>
+
+        <ProjectReference Include="..\Zpulon.AICopilot.Core.DataAnalysis\Zpulon.AICopilot.Core.DataAnalysis.csproj" />
+
+        <ProjectReference Include="..\Zpulon.AICopilot.Core.McpServer\Zpulon.AICopilot.Core.McpServer.csproj" />
+
+        <ProjectReference Include="..\Zpulon.AICopilot.Core.Rag\Zpulon.AICopilot.Core.Rag.csproj" />
+
+        <ProjectReference Include="..\Zpulon.AICopilot.SharedKernel\Zpulon.AICopilot.SharedKernel.csproj"/>
+    </ItemGroup>
+</Project>

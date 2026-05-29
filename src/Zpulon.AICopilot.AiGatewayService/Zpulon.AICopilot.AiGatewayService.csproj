@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Zpulon.AICopilot.AgentPlugin\Zpulon.AICopilot.AgentPlugin.csproj" />
+        <ProjectReference Include="..\Zpulon.AICopilot.Core.AiGateway\Zpulon.AICopilot.Core.AiGateway.csproj" />
+        <ProjectReference Include="..\Zpulon.AICopilot.DataAnalysisService\Zpulon.AICopilot.DataAnalysisService.csproj" />
+        <ProjectReference Include="..\Zpulon.AICopilot.IdentityService\Zpulon.AICopilot.IdentityService.csproj" />
+        <ProjectReference Include="..\Zpulon.AICopilot.RagService\Zpulon.AICopilot.RagService.csproj" />
+        <ProjectReference Include="..\Zpulon.AICopilot.Services.Common\Zpulon.AICopilot.Services.Common.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Agents.AI.Hosting" Version="1.0.0-preview.251219.1" />
+      <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.0.0-preview.251204.1" />
+      <PackageReference Include="Microsoft.Agents.AI.Workflows" Version="1.0.0-preview.251219.1" />
+      <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.8" />
+      <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
+      <PackageReference Include="OpenTelemetry" Version="1.14.0" />
+    </ItemGroup>
+
+</Project>

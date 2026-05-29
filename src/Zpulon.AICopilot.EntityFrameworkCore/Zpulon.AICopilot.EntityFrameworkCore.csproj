@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
+        <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.1.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.8" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.8" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.8" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Zpulon.AICopilot.Core.AiGateway\Zpulon.AICopilot.Core.AiGateway.csproj" />
+        <ProjectReference Include="..\Zpulon.AICopilot.Core.McpServer\Zpulon.AICopilot.Core.McpServer.csproj" />
+        <ProjectReference Include="..\Zpulon.AICopilot.Core.Rag\Zpulon.AICopilot.Core.Rag.csproj" />
+        <ProjectReference Include="..\Zpulon.AICopilot.IdentityService\Zpulon.AICopilot.IdentityService.csproj" />
+        <ProjectReference Include="..\Zpulon.AICopilot.Services.Common\Zpulon.AICopilot.Services.Common.csproj" />
+    </ItemGroup>
+</Project>
