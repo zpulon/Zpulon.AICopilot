@@ -69,8 +69,7 @@ public class ChatAgentFactory(IServiceProvider serviceProvider)
         // 动态创建会话存储
         if (isSaveChatMessage)
         {
-            agentOptions.ChatMessageStoreFactory = context =>
-                new SessionChatMessageStore(serviceProvider, context.SerializedState);
+            agentOptions.ChatHistoryProvider= new SessionChatMessageStore(serviceProvider);
         }
         
         var agent = chatClientBuilder.BuildAIAgent(agentOptions, services: serviceProvider);

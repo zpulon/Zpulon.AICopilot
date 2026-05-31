@@ -47,13 +47,16 @@ public class IntentRoutingExecutor(
             logger.LogDebug("意图识别原始响应: {ResponseText}", response.Text);
             
             // 将 Agent 的响应作为事件记录到工作流日志中
-            await context.AddEventAsync(new AgentRunResponseEvent(Id, response), cancellationToken);
+            await context.AddEventAsync(new AgentResponseEvent(Id, response), cancellationToken);
             
             // 4. 解析结果
             List<IntentResult> intentResults;
             try
             {
-                intentResults = response.Deserialize<List<IntentResult>>(JsonSerializerOptions.Web);
+                //intentResults = response.Deserialize<List<IntentResult>>(JsonSerializerOptions.Web);
+                // ✨【核心修复点】：直接对 response.Text 字符串进行标准反序列化
+                intentResults = JsonSerializer.Deserialize<List<IntentResult>>(response.Text, JsonSerializerOptions.Web)
+                                ?? [new IntentResult { Intent = "General.Chat", Confidence = 1.0, Reasoning = "返回了空结果" }];
             }
             catch (JsonException)
             {

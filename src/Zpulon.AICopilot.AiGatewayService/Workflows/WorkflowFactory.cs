@@ -20,7 +20,7 @@ public class WorkflowFactory(
             .AddFanOutEdge(intentRouting, [toolsPack, knowledgeRetrieval, dataAnalysis])
             // 2. 扇入 (Fan-in): [工具打包, 知识检索] -> 聚合器
             // 聚合器接收来自 sources 列表的所有输出
-            .AddFanInEdge([toolsPack, knowledgeRetrieval, dataAnalysis], contextAggregator)
+            .AddFanInBarrierEdge([toolsPack, knowledgeRetrieval, dataAnalysis], contextAggregator)
             // 3. 线性连接: 聚合器 -> 最终处理
             .AddEdge(contextAggregator, agentBuild)
             .AddEdge(agentBuild, agentRun)

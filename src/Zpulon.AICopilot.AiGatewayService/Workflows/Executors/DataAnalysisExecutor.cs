@@ -90,14 +90,14 @@ public class DataAnalysisExecutor(
             // 这里会动态注入 PG 或 SQLServer 的方言提示词
             var agent = await agentBuilder.BuildAsync(db);
             // 创建临时会话线程
-            var thread = agent.GetNewThread();
-            
+            var session =await agent.CreateSessionAsync();
+
             // 4. 执行 ReAct 循环
             // Agent 会自动进行: 思考 -> GetTableNames -> 思考 -> GetTableSchema -> 思考 -> ExecuteSQL -> 总结
-            await foreach (var update in agent.RunStreamingAsync(intent.Query!, thread, cancellationToken: ct))
+            await foreach (var update in agent.RunStreamingAsync(intent.Query!, session, cancellationToken: ct))
             {
                 
-                await context.AddEventAsync(new AgentRunUpdateEvent(Id, update), ct);
+                await context.AddEventAsync(new AgentResponseUpdateEvent(Id, update), ct);
             }
             
             // 记录日志以便调试
@@ -117,7 +117,7 @@ public class DataAnalysisExecutor(
                 {
                     var widget = BuildWidget(output.Decision, rawData!, schema!);
                     var message = new ChatMessage(ChatRole.Assistant, widget.ToJson());
-                    await context.AddEventAsync(new AgentRunResponseEvent(Id, new AgentRunResponse(message)), ct);
+                    await context.AddEventAsync(new AgentResponseEvent(Id, new AgentResponse(message)), ct);
                 }
                 catch (Exception ex)
                 {

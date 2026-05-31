@@ -56,7 +56,7 @@ public class ChatStreamHandler(
             var workflow = workflowFactory.CreateFinalAgentRunWorkflow();
             
             // 启动工作流（传入AgentContext）
-            await using var workflowRun = await InProcessExecution.StreamAsync(workflow, agentContext, cancellationToken: ct);
+            await using var workflowRun = await InProcessExecution.RunStreamingAsync(workflow, agentContext, cancellationToken: ct);
             
             // 监听并转发事件
             await foreach (var chatChunk in RunWorkflow(workflowRun, request.SessionId, ct))
@@ -78,7 +78,7 @@ public class ChatStreamHandler(
             var workflow = workflowFactory.CreateIntentWorkflow();
             
             // 启动工作流（传入用户请求）
-            await using var workflowRun = await InProcessExecution.StreamAsync(workflow, request, cancellationToken: ct);
+            await using var workflowRun = await InProcessExecution.RunStreamingAsync(workflow, request, cancellationToken: ct);
             
             // 监听并转发事件
             await foreach (var chatChunk in RunWorkflow(workflowRun, request.SessionId, ct))
@@ -97,16 +97,57 @@ public class ChatStreamHandler(
             Console.WriteLine(workflowEvent);
             switch (workflowEvent)
             {
-                case WorkflowOutputEvent evt:
-                    if (evt.Data is FinalAgentContext agentContext && agentContext.FunctionApprovalRequestContents.Count != 0)
-                    {
-                        AgentContexts.TryAdd(sessionId, agentContext);
-                    }
-                    break;
+  
+
                 case ExecutorFailedEvent evt:
                     yield return new ChatChunk(evt.ExecutorId, ChunkType.Error, evt.Data?.Message ?? string.Empty);
                     break;
-                case AgentRunResponseEvent evt:
+
+                case AgentResponseUpdateEvent evt:
+                    if (evt.Update?.Contents == null) continue;
+
+                    foreach (var evtContent in evt.Update.Contents)
+                    {
+                        switch (evtContent)
+                        {
+                            case TextContent content:
+                                yield return new ChatChunk(evt.ExecutorId, ChunkType.Text, content.Text);
+                                break;
+
+                            // ✨【核心修复点】：将两个重复的 case 合并为一个
+                            case FunctionCallContent content:
+                                // 1. 发送标准的函数调用消息（通知前端大模型正在尝试调用工具）
+                                var fun = new
+                                {
+                                    id = content.CallId,
+                                    name = content.Name,
+                                    args = content.Arguments
+                                };
+                                yield return new ChatChunk(evt.ExecutorId, ChunkType.FunctionCall, fun.ToJson());
+
+                                // 2. 紧接着发送审批请求消息（触发前端的卡片挂起和“批准/拒绝”按钮）
+                                var approval = new
+                                {
+                                    callId = content.CallId,
+                                    name = content.Name,
+                                    args = content.Arguments
+                                };
+                                yield return new ChatChunk(evt.ExecutorId, ChunkType.ApprovalRequest, approval.ToJson());
+                                break; // 统一结束
+
+                            case FunctionResultContent content:
+                                var result = new
+                                {
+                                    id = content.CallId,
+                                    result = content.Result
+                                };
+                                yield return new ChatChunk(evt.ExecutorId, ChunkType.FunctionResult, result.ToJson());
+                                break;
+                        }
+                    }
+                    break;
+
+                case AgentResponseEvent evt:
                     switch (evt.ExecutorId)
                     {
                         case "IntentRoutingExecutor":
@@ -117,44 +158,10 @@ public class ChatStreamHandler(
                             break;
                     }
                     break;
-                case AgentRunUpdateEvent evt:
-                    foreach (var evtContent in evt.Update.Contents)
+                case WorkflowOutputEvent evt:
+                    if (evt.Data is FinalAgentContext agentContext && agentContext.FunctionApprovalRequestContents.Count != 0)
                     {
-                        switch (evtContent)
-                        {
-                            case TextContent content:
-                                yield return new ChatChunk(evt.ExecutorId, ChunkType.Text, content.Text);
-                                break;
-                            case FunctionCallContent content:
-                                var fun = new
-                                {
-                                    id = content.CallId,
-                                    name = content.Name, 
-                                    args = content.Arguments
-                                };
-                                yield return new ChatChunk(evt.ExecutorId, ChunkType.FunctionCall, fun.ToJson());
-                                break;
-                            case FunctionResultContent content:
-                                var result = new
-                                {
-                                    id = content.CallId,
-                                    result = content.Result
-                                };
-                                yield return new ChatChunk(evt.ExecutorId, ChunkType.FunctionResult,
-                                    result.ToJson());
-                                break;
-                            case FunctionApprovalRequestContent content:
-                                // 监听函数审批请求对象
-                                var approval = new
-                                {
-                                    callId = content.FunctionCall.CallId,
-                                    name = content.FunctionCall.Name,
-                                    args = content.FunctionCall.Arguments
-                                };
-                                yield return new ChatChunk(evt.ExecutorId, ChunkType.ApprovalRequest,
-                                    approval.ToJson());
-                                break;
-                        }
+                        AgentContexts.TryAdd(sessionId, agentContext);
                     }
                     break;
             }

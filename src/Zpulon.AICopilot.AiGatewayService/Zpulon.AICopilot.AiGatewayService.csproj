@@ -16,9 +16,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.Agents.AI.Hosting" Version="1.0.0-preview.251219.1" />
-      <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.0.0-preview.251204.1" />
-      <PackageReference Include="Microsoft.Agents.AI.Workflows" Version="1.0.0-preview.251219.1" />
+      <PackageReference Include="Microsoft.Agents.AI.Hosting" Version="1.8.0-preview.260528.1" />
+      <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.8.0" />
+      <PackageReference Include="Microsoft.Agents.AI.Workflows" Version="1.8.0" />
       <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.8" />
       <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
       <PackageReference Include="OpenTelemetry" Version="1.15.3" />

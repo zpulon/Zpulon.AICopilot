@@ -118,11 +118,11 @@ public class FinalAgentBuildExecutor(
 
             // 5. 构建 FinalAgentContext 并传递给下一个节点
             // 注意：我们这里不执行 RunStreamingAsync，而是创建好环境就交棒。
-            var agentThread = agent.GetNewThread();
+            var agentThread =await agent.CreateSessionAsync();
             var finalAgentContext = new FinalAgentContext
             {
                 Agent = agent,
-                Thread = agentThread,
+                Session = agentThread,
                 InputText = finalUserPrompt,
                 RunOptions = runOptions,
                 SessionId = request.SessionId

@@ -43,7 +43,7 @@ public class FinalAgentRunExecutor(
                 {
                     // 在暂存的请求列表中查找对应的 RequestContent
                     var requestContent = agentContext.FunctionApprovalRequestContents
-                        .FirstOrDefault(rc => rc.FunctionCall.CallId == callId);
+                        .FirstOrDefault(rc => rc.CallId == callId);
                     if (requestContent == null)
                     {
                         logger.LogWarning("未找到 CallId: {CallId} 的审批请求上下文，跳过。", callId);
@@ -53,13 +53,16 @@ public class FinalAgentRunExecutor(
                     // 核心逻辑：模拟生成审批结果消息
                     // CreateResponse 是框架提供的方法，它会为特定的审批请求生成一个审批响应对象：
                     // True 表示通过审批，False 表示未通过审批
-                    var isApproved = agentContext.InputText == "批准"; 
-                    var response = requestContent.CreateResponse(isApproved);
-                    
+                    var isApproved = agentContext.InputText == "批准";
+                    object toolExecutionResult = isApproved
+                        ? "Success: Operation approved and executed by administrator."
+                        : "Error: Operation rejected due to security policy or user refusal.";
+
+                    var response = new FunctionResultContent(callId, toolExecutionResult);
                     // 将这个响应包装为 User 消息发送给 Agent
                     // Agent 收到后，内部机制会解除挂起状态，真正执行工具调用
-                    message.Add(new ChatMessage(ChatRole.User,[response]));
-                    
+                    message.Add(new ChatMessage(ChatRole.User, [response]));
+
                     // 清理已处理的请求
                     agentContext.FunctionApprovalRequestContents.Remove(requestContent);
                 }
@@ -77,25 +80,25 @@ public class FinalAgentRunExecutor(
             // 无论是初次运行还是恢复运行，都复用同一个 agentContext.Thread 和 RunOptions
             await foreach (var update in agentContext.Agent.RunStreamingAsync(
                                message,
-                               agentContext.Thread,
+                               agentContext.Session,
                                agentContext.RunOptions,
                                cancellationToken))
             {
                 // 3. 实时捕获流中的内容
-                foreach (var content in update.Contents)
+                foreach (AIContent content in update.Contents)
                 {
                     // 关键点：拦截审批请求
-                    // 如果 Agent 想要执行敏感操作，它不会直接执行，而是产生 FunctionApprovalRequestContent
-                    if (content is FunctionApprovalRequestContent requestContent)
+                    // 如果 Agent 想要执行敏感操作，它不会直接执行，而是产生 FunctionCallContent
+                    if (content is FunctionCallContent requestContent)
                     {
-                        logger.LogInformation("Agent 发起审批请求: {Name}", requestContent.FunctionCall.Name);
+                        logger.LogInformation("Agent 发起审批请求: {Name}", requestContent.Name);
                         // 我们必须将这个请求暂存到 Context 中，以便后续恢复时使用
                         agentContext.FunctionApprovalRequestContents.Add(requestContent);
                     }
                 };
                 
                 // 4. 将更新事件转发给工作流，最终推送给前端
-                await context.AddEventAsync(new AgentRunUpdateEvent(Id, update), cancellationToken);
+                await context.AddEventAsync(new AgentResponseUpdateEvent(Id, update), cancellationToken);
             }
             
             // 返回更新后的 Context，以便状态保持
